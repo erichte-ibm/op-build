@@ -1,0 +1,54 @@
+From ff0012bb62db4f2bf73d96b20ca3f23c005f212c Mon Sep 17 00:00:00 2001
+From: Cyril Bur <cyril.bur@au1.ibm.com>
+Date: Thu, 2 Nov 2017 16:01:12 +1100
+Subject: [PATCH 3/8] Insert a git sha1 into the --version
+
+Will come in very handy when dealing with bugs
+---
+ Makefile.am  | 4 +++-
+ configure.ac | 1 +
+ kexec.c      | 2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index e87c0e6..a5d56b5 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,6 +1,8 @@
++GIT_SHA1 ?= `git --work-tree=$(top_srcdir) --git-dir=$(top_srcdir)/.git describe --always --long --dirty || echo unknown`
++
+ bin_PROGRAMS = kexec
+ 
+ kexec_SOURCES = kexec.c kexec_trampoline.S kexec_memory_map.c simple_allocator.c
+ 
+-kexec_CFLAGS = -Wall -O2 -ggdb3
++kexec_CFLAGS = -Wall -O2 -ggdb3 -DGIT_SHA1=\"${GIT_SHA1}\"
+ 
+diff --git a/configure.ac b/configure.ac
+index 9444fc0..7ae3443 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -3,6 +3,7 @@ AM_INIT_AUTOMAKE()
+ AM_SILENT_RULES([yes])
+ AM_PROG_AS
+ 
++AC_REVISION([m4_esyscmd_s([git describe --always --long --dirty || echo unknown])])
+ AC_PROG_CC
+ AC_CONFIG_FILES([Makefile])
+ AC_CHECK_LIB([fdt], [fdt_create], [], [AC_MSG_ERROR([Could not find libfdt])])
+diff --git a/kexec.c b/kexec.c
+index 594f4af..074c3aa 100644
+--- a/kexec.c
++++ b/kexec.c
+@@ -745,7 +745,7 @@ int main(int argc, char *argv[])
+ 			break;
+ 
+ 		case 'v':
+-			printf("%s\n", VERSION);
++			printf("%s (git: %s)\n", VERSION, GIT_SHA1);
+ 			exit(1);
+ 
+ 		case 'i':
+-- 
+2.21.0
+

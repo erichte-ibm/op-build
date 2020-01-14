@@ -1,0 +1,33 @@
+From 2d3dbf7e9cbe3009f3d78b756ee23faa1e664d41 Mon Sep 17 00:00:00 2001
+From: Cyril Bur <cyril.bur@au1.ibm.com>
+Date: Fri, 2 Jun 2017 16:19:46 +1000
+Subject: [PATCH 1/8] Don't always update initrd location in the device-tree
+
+Currently kexec-lite always updates the location of the initrd
+(linux,initrd-start and linux,initrd-end) in the device-tree it intends
+to pass to the next kernel.
+
+This behaviour means that if no --initrd argument is passed,
+linux,initrd-start and linux,initrd-end get zeroed. Zeroing those fields
+prevents the next kernel from reusing an initrd in ram that the first
+kernel was using.
+---
+ kexec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kexec.c b/kexec.c
+index d87d617..faad085 100644
+--- a/kexec.c
++++ b/kexec.c
+@@ -824,7 +824,7 @@ int main(int argc, char *argv[])
+ 		if (cmdline)
+ 			update_cmdline(fdt, cmdline);
+ 
+-		load_fdt(fdt, 1);
++		load_fdt(fdt, initrd != NULL);
+ 		load_trampoline();
+ 
+ 		arm_kexec();
+-- 
+2.21.0
+
